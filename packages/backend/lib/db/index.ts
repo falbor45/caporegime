@@ -8,6 +8,6 @@ export default {
 		queryTextOrConfig: string | QueryConfig<I>,
 		values?: I
 	) => {
-		return pool.query(queryTextOrConfig, values);
+		return pool.query<R, I>(queryTextOrConfig, values);
 	},
 };
