@@ -1,7 +1,14 @@
 {
   "name": "root",
   "private": true,
+  "scripts": {
+    "bootstrap": "npx lerna exec npm install & npm install"
+  },
   "devDependencies": {
-    "lerna": "^4.0.0"
+    "lerna": "4.0.0",
+    "prettier": "2.3.0"
+  },
+  "dependencies": {
+    "backend": "file:packages\\backend"
   }
 }
