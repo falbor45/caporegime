@@ -1,4 +1,4 @@
-import db from '../../index';
+import { db } from '../../db';
 
 export const queryInsertUser = async (user: {
 	username: string;

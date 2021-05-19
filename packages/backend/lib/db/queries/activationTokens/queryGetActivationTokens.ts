@@ -1,10 +1,10 @@
 import { db } from '../../db';
 
-export const queryGetUsers = async (
-	where?: { username?: string; email?: string },
+export const queryGetActivationTokens = async (
+	where?: { id?: string; userId?: string },
 	orAnd: 'or' | 'and' = 'or',
 ) => {
-	const queryString = `SELECT * FROM USERS${
+	const queryString = `SELECT * FROM ACTIVATION_TOKENS${
 		where
 			? ` WHERE ${Object.entries(where).reduce(
 					(whereString, entry, index, arr) => {
@@ -25,14 +25,14 @@ export const queryGetUsers = async (
 
 	const response = await db.query<{
 		id: string;
-		username: string;
-		email: string;
-		password: string;
-		activated: boolean;
+		userid: string;
 	}>(queryString);
 
 	return {
 		...response,
-		rows: response.rows,
+		rows: response.rows.map(row => ({
+			id: row.id,
+			userId: row.userid,
+		})),
 	};
 };
