@@ -27,10 +27,39 @@ export default (app: Router) => {
 					}
 
 					await service.registerUser();
+					await service.sendMailActivationEmail();
 
 					const user = await service.getUser();
 
 					return res.status(201).send(JSON.stringify(user));
+				} catch (err) {
+					return res.status(500).send(err);
+				}
+			},
+		),
+	);
+
+	route.post(
+		'/activate',
+		validateBody(
+			z.object({
+				token: z.string().uuid(),
+			}),
+			async (req, res) => {
+				try {
+					const service = new UserService();
+
+					const didActivate = await service.activateEmail(req.body.token);
+
+					if (!didActivate) {
+						return res
+							.status(500)
+							.send(
+								'There was an issue when activating your account. Try again later.',
+							);
+					}
+
+					return res.sendStatus(204);
 				} catch (err) {
 					return res.status(500).send(err);
 				}
