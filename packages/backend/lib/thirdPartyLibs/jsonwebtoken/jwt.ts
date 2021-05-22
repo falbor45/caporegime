@@ -1,4 +1,8 @@
-import { default as jsonwebtoken, SignOptions } from 'jsonwebtoken';
+import {
+	default as jsonwebtoken,
+	SignOptions,
+	VerifyOptions,
+} from 'jsonwebtoken';
 
 export const jwt = {
 	...jsonwebtoken,
@@ -7,5 +11,11 @@ export const jwt = {
 			throw new Error('No JWT Secret found!');
 		}
 		return jsonwebtoken.sign(payload, process.env.JWT_SECRET, options);
+	},
+	verify: (token: string, options?: VerifyOptions) => {
+		if (!process.env.JWT_SECRET) {
+			throw new Error('No JWT Secret found!');
+		}
+		return jsonwebtoken.verify(token, process.env.JWT_SECRET, options);
 	},
 };
