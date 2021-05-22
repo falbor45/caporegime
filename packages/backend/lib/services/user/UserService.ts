@@ -7,27 +7,61 @@ import { queryGetActivationTokens } from '../../db/queries/activationTokens/quer
 import { queryInsertActivationToken } from '../../db/queries/activationTokens/queryInsertActivationToken';
 import { querySetActiveUser } from '../../db/queries/users/querySetActiveUser';
 import { queryDeleteActivationToken } from '../../db/queries/activationTokens/queryDeleteActivationToken';
+import { jwt } from '../../thirdPartyLibs/jsonwebtoken/jwt';
 
 export class UserService {
 	username: string;
 	email: string;
 	password: string;
 
-	constructor(user?: { username: string; email?: string; password: string }) {
+	constructor(user?: { username?: string; email?: string; password?: string }) {
 		this.username = user?.username ?? '';
 		this.email = user?.email ?? '';
 		this.password = user?.password ?? '';
 	}
 
-	public async getUser() {
+	public async signIn(safeFieldsOnly = true) {
 		try {
-			const response = await queryGetUsers(
-				{ username: this.username, email: this.email },
-				'and',
+			const response = await queryGetUsers({ username: this.username });
+
+			const userRecord = response.rows[0];
+
+			if (!userRecord) {
+				return null;
+			}
+
+			if (!userRecord.activated) {
+				return null;
+			}
+
+			const isPasswordValid = await argon2.verify(
+				userRecord.password,
+				this.password,
 			);
 
-			const { password, activated, ...safeFields } = response.rows[0];
-			return safeFields;
+			if (!isPasswordValid) {
+				return null;
+			}
+
+			const token = jwt.sign(
+				{
+					sub: userRecord.id,
+				},
+				{
+					expiresIn: '7d',
+				},
+			);
+
+			if (safeFieldsOnly) {
+				const { password, ...safeFields } = userRecord;
+
+				return {
+					user: safeFields,
+					token: token,
+				};
+			}
+
+			return userRecord;
 		} catch (err) {
 			console.log(err);
 
@@ -135,6 +169,21 @@ export class UserService {
 			console.log(err);
 
 			return false;
+		}
+	}
+
+	private async getUser() {
+		try {
+			const response = await queryGetUsers(
+				{ username: this.username, email: this.email },
+				'and',
+			);
+
+			return response.rows[0];
+		} catch (err) {
+			console.log(err);
+
+			return null;
 		}
 	}
 
