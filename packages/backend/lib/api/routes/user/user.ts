@@ -29,9 +29,7 @@ export default (app: Router) => {
 					await service.registerUser();
 					await service.sendMailActivationEmail();
 
-					const user = await service.getUser();
-
-					return res.status(201).send(JSON.stringify(user));
+					return res.sendStatus(201);
 				} catch (err) {
 					return res.status(500).send(err);
 				}
@@ -60,6 +58,36 @@ export default (app: Router) => {
 					}
 
 					return res.sendStatus(204);
+				} catch (err) {
+					return res.status(500).send(err);
+				}
+			},
+		),
+	);
+
+	route.post(
+		'/signIn',
+		validateBody(
+			z.object({
+				username: z.string(),
+				password: z.string(),
+			}),
+			async (req, res) => {
+				try {
+					const service = new UserService({
+						username: req.body.username,
+						password: req.body.password,
+					});
+
+					const user = await service.signIn(true);
+
+					if (!user) {
+						return res
+							.status(400)
+							.send('Cannot log in with provided credentials.');
+					}
+
+					return res.status(200).send(JSON.stringify(user));
 				} catch (err) {
 					return res.status(500).send(err);
 				}
